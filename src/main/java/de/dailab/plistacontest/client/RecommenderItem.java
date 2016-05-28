@@ -60,6 +60,8 @@ public class RecommenderItem {
 	public static final Integer NOTIFICATION_TYPE_ID = 12;
 	public static final Integer NUMBER_DISPLAYED_AS_REC_ID = 13;
 	public static final Integer LIST_OF_DISPLAYED_RECS_ID = 14;
+	public static final Integer USER_GEO = 15;
+	public static final Integer ITM_URL = 16;
 	// /////////////////////////////////////////////////////////////////////////////////////////
 
 	/** the JSON content, might be null */
@@ -86,12 +88,14 @@ public class RecommenderItem {
 	 * @param timeStamp
 	 */
 	public RecommenderItem(final Long userID, final Long itemID,
-			final Long domainID, final Long timeStamp) {
+			final Long domainID, final Long timeStamp, final Long geo, final String url) {
 		this();
 		this.valuesByID.put(USER_ID, userID);
 		this.valuesByID.put(ITEM_ID, itemID);
 		this.valuesByID.put(DOMAIN_ID, domainID);
 		this.valuesByID.put(TIMESTAMP_ID, timeStamp);
+		this.valuesByID.put(USER_GEO, geo);
+		this.valuesByID.put(ITM_URL, url);
 	}
 
 	/**
@@ -149,6 +153,29 @@ public class RecommenderItem {
 		return (Long) valuesByID.get(TIMESTAMP_ID);
 	}
 
+	
+	/**
+	 * Getter for usergeo. (convenience)
+	 * 
+	 * @return the timeStamp
+	 */
+	public Long getUserGeo() {
+		return (Long) valuesByID.get(USER_GEO);
+	}
+
+	
+	
+	/**
+	 * Getter for itemURL. (convenience)
+	 * 
+	 * @return the timeStamp
+	 */
+	public String getURL() {
+		return (String) valuesByID.get(ITM_URL);
+	}
+	
+	
+	
 	/**
 	 * Getter for text (convenience).
 	 * 
@@ -318,6 +345,7 @@ public class RecommenderItem {
 			String domainID = jsonObj.get("domainid") + "";
 			String text = jsonObj.get("text") + "";
 			String flag = jsonObj.get("flag") + "";
+			String url = jsonObj.get("url") + "";
 			boolean recommendable = ("0".equals(flag));
 			
 			// parse date, now is default
@@ -330,9 +358,11 @@ public class RecommenderItem {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			RecommenderItem result = new RecommenderItem(null /*userID*/, Long.valueOf(itemID),  Long.valueOf(domainID), created);
+			RecommenderItem result = new RecommenderItem(null /*userID*/, Long.valueOf(itemID),  Long.valueOf(domainID), created, null /*geo*/, url);
 			result.setText(text);
 			result.setRecommendable(recommendable);
+			//This is added by me
+			return result;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -380,7 +410,15 @@ public class RecommenderItem {
 			} catch (Exception e) {
 				System.out.println("[Exception] no limit found in " + _jsonMessageBody);
 			}
-			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, timeStamp);
+			Long geo = 0L;
+			
+			try {
+				geo= Long.valueOf(jsonObjectContextSimple.get("7").toString());
+			} catch (Exception e) {
+				System.out.println("[Exception] no user geo found in " + _jsonMessageBody);
+			}
+			
+			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, timeStamp, geo, null);
 			result.setNumberOfRequestedResults(limit.intValue());
 			
 			return result;
@@ -428,6 +466,14 @@ public class RecommenderItem {
 			}
 			
 						
+			Long geo = 0L;
+			
+			try {
+				geo= Long.valueOf(jsonObjectContextSimple.get("7").toString());
+			} catch (Exception e) {
+				System.out.println("[Exception] no user geo found in " + _jsonMessageBody);
+			}
+			
 			// impressionType
 			String notificationType = null;
 			try {
@@ -454,7 +500,7 @@ public class RecommenderItem {
 			}
 			
 			// create the result and return
-			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, System.currentTimeMillis());
+			RecommenderItem result = new RecommenderItem(userID, itemID, domainID, System.currentTimeMillis(), geo, null);
 			result.setNotificationType(notificationType);
 			result.setListOfDisplayedRecs(listOfDisplayedRecs);
 			

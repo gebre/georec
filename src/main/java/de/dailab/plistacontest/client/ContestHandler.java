@@ -55,7 +55,7 @@ public class ContestHandler
     /**
      * here we store all relevant data about items.
      */
-    private final RecommenderItemTable recommenderItemTable = new RecommenderItemTable();
+    private final GeoRecommender geoRecommender = new GeoRecommender();
     
     /**
      * Define the default recommender, currently not used.
@@ -146,7 +146,7 @@ public class ContestHandler
         	
         	// we mark this information in the article table
         	if (recommenderItem.getItemID() != null) {
-        		recommenderItemTable.handleItemUpdate(recommenderItem);
+        		geoRecommender.handleItemUpdate(recommenderItem);
         	}
         	
         	response = ";item_update successfull";
@@ -160,7 +160,7 @@ public class ContestHandler
         		RecommenderItem currentRequest = RecommenderItem.parseRecommendationRequest(_jsonMessageBody);
         		
         		// gather the items to be recommended
-        		List<Long> resultList = recommenderItemTable.getLastItems(currentRequest);
+        		List<Long> resultList = geoRecommender.getLastItems(currentRequest);
         		if (resultList == null) {
         			response = "[]";
         			System.out.println("invalid resultList");
@@ -168,7 +168,7 @@ public class ContestHandler
         			response = resultList.toString();
         		}
         		response = getRecommendationResultJSON(response);
-        		
+        		logger.info("recommendation_response" + "\t" + response);
         	    // TODO? might handle the the request as impressions
         	} catch (Throwable t) {
         		t.printStackTrace();
@@ -186,7 +186,7 @@ public class ContestHandler
 					// we mark this information in the article table
 		        	if (item.getItemID() != null) {
                         // new items shall be added to the list of items
-		        		recommenderItemTable.handleItemUpdate(item);
+		        		geoRecommender.handleItemUpdate(item);
 		        	
 					response = "handle impression eventNotification successful";
 				}
